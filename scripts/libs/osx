@@ -1,0 +1,140 @@
+#!/usr/bin/env bash
+
+source ./scripts/libs/common
+
+setup_osx_gui() {
+  if ! command -v defaults &>/dev/null; then
+    echo "command defaults not found"
+    return
+  fi
+  defaults write com.apple.finder AppleShowAllFiles YES           # show hidden files
+  defaults write com.apple.dock persistent-apps -array            # remove icons in Dock
+  defaults write com.apple.dock tilesize -int 72                  # smaller icon sizes in Dock
+  defaults write com.apple.dock autohide -bool true               # turn Dock auto-hidng on
+  defaults write com.apple.dock autohide-delay -float 0           # remove Dock show delay
+  defaults write com.apple.dock autohide-time-modifier -float 0   # remove Dock show delay
+  defaults write com.apple.dock orientation bottom                # place Dock on the bottom side of screen
+  defaults write NSGlobalDomain AppleShowAllExtensions -bool true # show all file extensions
+  sudo killall Dock 2>/dev/null
+  sudo killall Finder 2>/dev/null
+}
+
+install_xcode() {
+  if ! command -v softwareupdate &>/dev/null; then
+    echo "softwareupdate is not installed."
+    return
+  fi
+  if command -v xcode-select &>/dev/null; then
+    echo "xcode-select is already installed."
+    return
+  fi
+  # https://github.com/timsutton/osx-vm-templates/blob/ce8df8a7468faa7c5312444ece1b977c1b2f77a4/scripts/xcode-cli-tools.sh
+  touch /tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress
+  prod=$(softwareupdate -l | grep -o "Command Line Tools for Xcode-.*" | tr -d '\n')
+  softwareupdate -i "$prod" --verbose
+}
+
+install_homebrew() {
+  if command -v brew &>/dev/null; then
+    echo "brew is already installed."
+    brew upgrade
+    brew update
+    return
+  fi
+  NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+  brew update
+}
+
+brew_install_with_requirement() {
+  HOMEBREW_NO_AUTO_UPDATE=1 xargs brew install < "$1"
+}
+
+config_sudo() {
+  sudo sed -i '' "s/%admin\t\tALL = (ALL) ALL/%admin\t\tALL = (ALL) NOPASSWD: ALL/g" /etc/sudoers
+}
+
+config_zsh() {
+  # oh-my-zsh
+  rm -rf "${HOME}/.oh-my-zsh"
+  wget -qO- https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh | bash || true
+
+  # p10k
+  brew install romkatv/powerlevel10k/powerlevel10k
+
+  OUTPUT=$(cat "${HOME}/.zshrc")
+  if ! echo "$OUTPUT" | grep -q "powerlevel10k/powerlevel10k.zsh-theme"; then
+    echo "source $(brew --prefix)/opt/powerlevel10k/powerlevel10k.zsh-theme" >> "${HOME}/.zshrc"
+  fi
+
+  if [[ "$SHELL" != "/bin/zsh" ]]; then
+    chsh -s "$(which zsh)" || true
+  fi
+
+  brew tap homebrew/command-not-found
+  pip3 install percol
+}
+
+config_iterm2() {
+  defaults write com.googlecode.iterm2 PrefsCustomFolder -string "${HOME}/dotfiles/configs/apps/iterm2"
+  defaults write com.googlecode.iterm2 LoadPrefsFromCustomFolder -bool true
+}
+
+config_autojump() {
+  if ! command -v autojump &>/dev/null; then
+    [ -f "$(brew --prefix)/etc/profile.d/autojump.sh" ] &&
+      . "$(brew --prefix)/etc/profile.d/autojump.sh"
+    echo "[ -f $(brew --prefix)/etc/profile.d/autojump.sh ] && . $(brew --prefix)/etc/profile.d/autojump.sh" >>~/.zshrc
+  fi
+}
+
+install_go() {
+  # always source to fix issues https://github.com/moovweb/gvm/issues/188#issuecomment-372918090
+  source ${HOME}/.gvm/scripts/gvm
+
+  OUTPUT=$(gvm list)
+  if echo "$OUTPUT" | grep -q "go1.18"; then
+    echo "go1.18 is already installed."
+    return
+  fi
+  brew install go
+  gvm install go1.15.5
+  gvm use go1.15.5 --default
+  brew uninstall go
+  export GOROOT_BOOTSTRAP=${GOROOT}
+  gvm install go1.18
+  gvm use go1.18 --default
+}
+
+mac_app_store_install_applications() {
+  while read line; do
+    OUTPUT=$(mas list)
+    if echo "$OUTPUT" | grep -q "$line"; then
+      echo "$line is already installed."
+      continue
+    fi
+    mas lucky "$line"
+  done < "$1"
+  mas upgrade
+}
+
+download_dmg_files() {
+  set -x
+  tempd=$(mktemp -d)
+  curl "$1" > "${tempd}/pkg.dmg"
+  listing=$(sudo hdiutil attach "${tempd}/pkg.dmg" | grep Volumes)
+  volume=$(echo "$listing" | cut -f 3)
+  open $tempd
+  echo "Please install by click install.app"
+  read -r -p "Press enter to continue"
+  sudo hdiutil detach "$(echo "$listing" | cut -f 1 | sed 's/ *$//g')"
+  rm -rf "$tempd"
+  set +x
+}
+
+install_parallels_desktop() {
+  # if [[ -d "/Applications/Parallels Desktop.app" ]]; then
+  #   echo "Parallels Desktop 15 already installed"
+  #   return
+  # fi
+  download_dmg_files https://download.parallels.com/desktop/v15/15.1.5-47309/ParallelsDesktop-15.1.5-47309.dmg
+}

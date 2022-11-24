@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+
+set -a
+source .env
+set +a
+
+init_variables() {
+  script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)
+  script_name=$(basename "${BASH_SOURCE[0]}")
+  script_path=$(echo "${script_dir//$PWD/}")
+}
+
+usage() {
+  cat <<EOF
+
+Usage: .$script_path/$script_name arg1 [arg2...]
+
+Available args:
+
+.$script_path/$script_name base    Setup base environment, alias: b
+
+
+Addition packages for developer:
+
+.$script_path/$script_name web     Install packages for web developer, alias: w
+.$script_path/$script_name mobile  Install packages for mobile developer, alias: m
+.$script_path/$script_name moxa    Install packages for moxa staff
+
+
+Addition packages for runtime:
+
+.$script_path/$script_name docker  Install packages for docker runtime, alias: d
+EOF
+  exit
+}
+
+install() {
+  set -xe
+  case $(uname) in
+  Darwin)
+    eval ./scripts/stack/"$1"/"$2"/osx
+    ;;
+  Linux)
+    if command -v apt &>/dev/null; then
+      eval ./scripts/stack/"$1"/"$2"/debian
+    fi
+
+    if command -v apk &>/dev/null; then
+      eval ./scripts/stack/"$1"/"$2"/alpine
+    fi
+
+    if command -v yum &>/dev/null; then
+      eval ./scripts/stac/"$1"/"$2"/centos
+    fi
+    ;;
+  *)
+    echo "this os is not support"
+    ;;
+  esac
+}
+
+main() {
+  init_variables
+
+  arg1=${1:-usage}
+  case $arg1 in
+  base | b)
+    install common base
+    ;;
+  web | w)
+    install developer web
+    ;;
+  mobile | m)
+    install developer mobile
+    ;;
+  moxa)
+    install enterprise moxa
+    ;;
+  docker | d)
+    install runtime docker
+    ;;
+  debug | db)
+    install misc debug
+    ;;
+  *)
+    usage
+    ;;
+  esac
+}
+
+main "$@"

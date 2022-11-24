@@ -1,0 +1,12 @@
+awscli
+aws-iam-authenticator
+cfn-lint
+fortio
+helm
+iperf
+k9s
+libffi
+minicom
+pnpm
+pulumi
+virtualbox

@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+source ./scripts/libs/common
+source ./scripts/libs/osx
+
+main() {
+  brew_install_with_requirement ./requirements/brew/enterprise/moxa/cask.txt
+}
+
+main

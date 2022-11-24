@@ -1,0 +1,157 @@
+#!/usr/bin/env bash
+
+set -xe
+
+link_dotfile() {
+  if [[ -L "$1" ]]; then
+    dest=$(readlink "$1")
+    if [ "${dest}" == "$2" ]; then
+      return
+    fi
+    mv "$1" "$1.pre-$(date +%Y-%d-%m-%H-%M-%S)"
+  fi
+  if [[ -f "$1" ]]; then
+    mv "$1" "$1-$(date +%Y-%d-%m-%H-%M-%S)"
+  fi
+  mkdir -p "$1" && rm -rf "$1"
+  ln -sf "$2" "$1"
+}
+
+config_apps() {
+  link_dotfile "${HOME}/Library/Application Support/Code/User/settings.json" "${PWD}/configs/apps/vscode/settings.json"
+  link_dotfile "${HOME}/.gitignore_global" "${PWD}/configs/apps/.gitignore_global"
+  link_dotfile "${HOME}/.p10k.zsh" "${PWD}/configs/apps/.p10k.zsh"
+  link_dotfile "${HOME}/.vimrc" "${PWD}/configs/apps/.vimrc"
+  link_dotfile "${HOME}/.zshrc" "${PWD}/configs/apps/.zshrc"
+}
+
+config_git() {
+  git config --global core.excludesfile "${HOME}/.gitignore_global"
+  git config --global user.name "${GIT_USER_NAME}"
+  git config --global user.email "${GIT_USER_EMAIL}"
+  git config --global --bool pull.rebase true
+  git config --global --add --bool push.autoSetupRemote true
+
+  if [[ -z $(gpg --list-signatures --with-colons | grep 'sig' | grep "${GIT_USER_NAME} <${GIT_USER_EMAIL}>") ]]; then
+    gpg --batch --passphrase '' --quick-gen-key "${GIT_USER_NAME} <${GIT_USER_EMAIL}>" rsa4096 default
+  fi
+  public_key=$(gpg --list-signatures --with-colons | grep 'sig' | grep "${GIT_USER_NAME} <${GIT_USER_EMAIL}>" | head -n 1 | cut -d':' -f5)
+  mkdir -p "${HOME}/.gnupg/public-keys"
+
+  public_key_file=${HOME}/.gnupg/public-keys/$(echo "${GIT_USER_NAME}" | tr " " "-")-$(echo "${GIT_USER_EMAIL}" | tr "@" "-").gpg
+  rm -rf "$public_key_file"
+  gpg --armor -o "${public_key_file}" --export "$public_key"
+  cat "${public_key_file}"
+}
+
+install_pyenv() {
+  if [[ -f ${HOME}/.pyenv/bin/pyenv ]]; then
+    echo "pyenv is already installed."
+    cd "${HOME}/.pyenv/plugins/python-build/../.." && git pull && cd -
+    return
+  fi
+  wget -qO- https://pyenv.run | bash || true
+}
+
+install_python() {
+  if ! command -v pyenv &>/dev/null; then
+    export PATH="${HOME}/.pyenv/bin:${PATH}"
+    eval "$(pyenv init -)"
+    eval "$(pyenv virtualenv-init -)"
+  fi
+  if [[ ! -d ${HOME}/.pyenv/versions/pypy2.7-7.3.9 ]]; then
+    pyenv install pypy2.7-7.3.9
+    pyenv global pypy2.7-7.3.9
+    pip3 install virtualenvwrapper
+  fi
+  if [[ ! -d ${HOME}/.pyenv/versions/pypy3.8-7.3.9 ]]; then
+    pyenv install pypy3.8-7.3.9
+    pyenv global pypy3.8-7.3.9
+    pip3 install virtualenvwrapper
+  fi
+  if [[ ! -d ${HOME}/.pyenv/versions/pypy3.9-7.3.9 ]]; then
+    pyenv install pypy3.9-7.3.9
+    pyenv global pypy3.9-7.3.9
+    pip3 install virtualenvwrapper
+  fi
+
+  if [[ ! -d ${HOME}/.pyenv/versions/2.7 ]]; then
+    pyenv virtualenv pypy2.7-7.3.9 2.7
+  fi
+
+  if [[ ! -d ${HOME}/.pyenv/versions/3.8 ]]; then
+    pyenv virtualenv pypy3.8-7.3.9 3.8
+  fi
+
+  if [[ ! -d ${HOME}/.pyenv/versions/3.9 ]]; then
+    pyenv virtualenv pypy3.9-7.3.9 3.9
+  fi
+
+  pyenv global 3.8
+}
+
+install_nvm() {
+  if [[ -f ${HOME}/.nvm/nvm.sh ]]; then
+    echo "nvm is already installed."
+    return
+  fi
+  wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.2/install.sh | bash
+}
+
+install_node() {
+  if ! command -v nvm &>/dev/null; then
+    export NVM_DIR="${HOME}/.nvm"
+    [ -s "${NVM_DIR}/nvm.sh" ] && \. "${NVM_DIR}/nvm.sh"                   # This loads nvm
+    [ -s "${NVM_DIR}/bash_completion" ] && \. "${NVM_DIR}/bash_completion" # This loads nvm bash_completion
+  fi
+  nvm install 16
+  nvm use 16
+  nvm alias default 16
+  npm install -g yarn
+
+  ZSH_CUSTOM=${PWD}/configs/apps/.oh-my-zsh/custom
+  if [[ -d ${ZSH_CUSTOM}/plugins/zsh-nvm ]]; then
+    cd "${ZSH_CUSTOM}/plugins/zsh-nvm" && git pull && cd -
+    return
+  fi
+  git clone https://github.com/lukechilds/zsh-nvm "${ZSH_CUSTOM}/plugins/zsh-nvm"
+}
+
+install_gvm() {
+  if [[ -f ${HOME}/.gvm/scripts/gvm ]]; then
+    echo "gvm is already installed."
+    return
+  fi
+  zsh < <(curl -s -S -L https://raw.githubusercontent.com/moovweb/gvm/master/binscripts/gvm-installer)
+}
+
+install_vscode_ext() {
+  if command -v code >/dev/null 2>&1; then
+    echo "Installing vscode extensions..."
+    cat "${PWD}/requirements/vscode/extensions.txt" | xargs -L 1 code --install-extension >/dev/null 2>&1 || true
+  fi
+}
+
+install_kubectl() {
+  if ! command -v kubectl >/dev/null 2>&1; then
+    echo "kubectl is already installed."
+    return
+  fi
+  curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/darwin/amd64/kubectl"
+  chmod +x ./kubectl
+  sudo mv ./kubectl /usr/local/bin/kubectl
+
+  (
+    set -x
+    cd "$(mktemp -d)" &&
+      OS="$(uname | tr '[:upper:]' '[:lower:]')" &&
+      ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" &&
+      KREW="krew-${OS}_${ARCH}" &&
+      curl -fsSLO "https://github.com/kubernetes-sigs/krew/releases/latest/download/${KREW}.tar.gz" &&
+      tar zxvf "${KREW}.tar.gz" &&
+      ./"${KREW}" install krew
+  )
+
+  kubectl krew install ctx
+  kubectl krew install ns
+}

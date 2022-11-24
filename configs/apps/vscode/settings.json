@@ -1,0 +1,30 @@
+{
+  "customizeUI.font.monospace": "Fira Mono",
+  "customizeUI.font.regular": "Fira Sans",
+  "customizeUI.fontSizeMap": {
+    "10px": "12px",
+    "11px": "13px",
+    "12px": "14px",
+    "13px": "15px",
+    "19px": "11px",
+    "monospace": "15px"
+  },
+  "editor.accessibilitySupport": "off",
+  "editor.fontFamily": "'Fira Code', Menlo, Monaco, 'Courier New', monospace",
+  "editor.fontSize": 20,
+  "editor.minimap.enabled": false,
+  "editor.multiCursorModifier": "ctrlCmd",
+  "editor.renderControlCharacters": true,
+  "editor.renderWhitespace": "all",
+  "editor.snippetSuggestions": "top",
+  "editor.tabSize": 2,
+  "editor.wordWrap": "on",
+  "explorer.confirmDelete": false,
+  "explorer.confirmDragAndDrop": false,
+  "files.trimTrailingWhitespace": true,
+  "workbench.startupEditor": "none",
+  "terminal.integrated.env.osx": {
+    "FIG_NEW_SESSION": "1"
+  },
+  "redhat.telemetry.enabled": true
+}

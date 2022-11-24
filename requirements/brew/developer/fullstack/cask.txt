@@ -1,0 +1,4 @@
+aws/tap/aws-sam-cli
+homebrew/cask/dbeaver-community
+homebrew/cask/slack
+txn2/tap/kubefwd
