@@ -1,4 +1,3 @@
 azure-cli
-homebrew/cask/krisp
 homebrew/cask/microsoft-office
 homebrew/cask/microsoft-teams

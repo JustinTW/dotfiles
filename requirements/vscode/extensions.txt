@@ -4,11 +4,9 @@ dbaeumer.vscode-eslint
 eamodio.gitlens
 esbenp.prettier-vscode
 foxundermoon.shell-format
+GitHub.copilot
 GitLab.gitlab-workflow
 golang.go
-iocave.customize-ui
-iocave.monkey-patch
-# maty.vscode-mocha-sidebar
 mikestead.dotenv
 mrmlnc.vscode-duplicate
 ms-azuretools.vscode-docker

@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+
+backup_dir_prefix="/Volumes/Private/backup/Justin/MacBookPro-Moxa/Users/"
+
+if [ -z "$backup_dir_prefix" ]; then
+  echo "Backup directory not set"
+  exit 1
+fi
+
+if [ -d "$backup_dir_prefix" ]; then
+  backup_dir="$backup_dir_prefix/$(date +%Y-%m-%d)"
+  mkdir -p $backup_dir
+
+  rsync -avz \
+    --exclude='.DS_Store' \
+    --exclude='.Trash' \
+    --exclude='.cache' \
+    --exclude='.cursor' \
+    --exclude='.docker' \
+    --exclude='.gvm' \
+    --exclude='.npm' \
+    --exclude='.nvm' \
+    --exclude='.krew' \
+    --exclude='.kube' \
+    --exclude='.oh-my-zsh' \
+    --exclude='.orbstack' \
+    --exclude='.pulumi' \
+    --exclude='.pyenv' \
+    --exclude='.vscode' \
+    --exclude='_cache' \
+    --exclude='Applications' \
+    --exclude='Library' \
+    --exclude='Cache' \
+    --exclude='OrbStack' \
+    --exclude='VirtualBox VMs' \
+    --exclude='chromium' \
+    --exclude='go' \
+    ~ "$backup_dir"
+fi
+
+rsync -avz --no-group \
+  --exclude='.DS_Store' \
+  --exclude='.Trash' \
+  --exclude='Library' \
+  --exclude='vendor' \
+  --exclude='node_modules' \
+  --exclude='.venv' \
+  --exclude='venv' \
+  --exclude='_mod' \
+  --exclude='.pnpm-store' \
+  /Volumes/DATA /Volumes/Private/backup/Justin/MacBookPro-Moxa/Data/2024-10-02
