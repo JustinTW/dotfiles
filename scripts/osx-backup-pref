@@ -1,0 +1,96 @@
+#!/usr/bin/env bash
+
+#!/bin/bash
+
+# 設定備份目錄
+BACKUP_DIR="$HOME/Desktop/MacOS_Settings_Backup"
+
+# 定義要備份的 domains 列表
+DOMAINS=(
+    "com.apple.dock"
+    "com.apple.finder"
+    "com.apple.desktop"
+    "com.apple.screensaver"
+    "com.apple.systempreferences"
+    "com.apple.systemuiserver"
+    "com.apple.AppleMultitouchTrackpad"
+    "com.apple.driver.AppleBluetoothMultitouch.trackpad"
+    "com.apple.driver.AppleBluetoothMultitouch.mouse"
+    "com.apple.AppleMultitouchMouse"
+    "com.apple.keyboard"
+    "com.apple.Spotlight"
+    "com.apple.HIToolbox"
+    "com.apple.menuextra.clock"
+    "com.apple.screencapture"
+    "com.apple.spaces"
+    "com.apple.dashboard"
+    "com.apple.loginwindow"
+    "com.apple.LaunchServices"
+    "NSGlobalDomain"
+)
+
+# 備份函數
+backup() {
+    local timestamp=$(date +%Y%m%d_%H%M%S)
+    local backup_path="$BACKUP_DIR/$timestamp"
+    
+    mkdir -p "$backup_path"
+    
+    for domain in "${DOMAINS[@]}"; do
+        echo "Backing up $domain..."
+        defaults read "$domain" > "$backup_path/${domain}.plist" 2>/dev/null
+    done
+    
+    echo "Backing up global settings..."
+    defaults read > "$backup_path/GlobalSettings.plist"
+    
+    echo "Backup completed. Files saved in $backup_path"
+}
+
+# 還原函數
+restore() {
+    local file="$1"
+    if [ ! -f "$file" ]; then
+        echo "File not found: $file"
+        return 1
+    fi
+    
+    local domain=$(basename "$file" .plist)
+    echo "Restoring $domain..."
+    defaults import "$domain" "$file"
+    
+    # 對於某些 domains，可能需要重新啟動相關服務
+    case "$domain" in
+        "com.apple.dock")
+            killall Dock
+            ;;
+        "com.apple.finder")
+            killall Finder
+            ;;
+    esac
+    
+    echo "Restore completed for $domain"
+}
+
+# 主函數
+main() {
+    case "$1" in
+        backup)
+            backup
+            ;;
+        restore)
+            if [ -z "$2" ]; then
+                echo "Please specify a file to restore"
+                exit 1
+            fi
+            restore "$2"
+            ;;
+        *)
+            echo "Usage: $0 {backup|restore <filename>}"
+            exit 1
+            ;;
+    esac
+}
+
+# 執行主函數
+main "$@"
