@@ -26,5 +26,13 @@
   "terminal.integrated.env.osx": {
     "FIG_NEW_SESSION": "1"
   },
-  "redhat.telemetry.enabled": true
+  "redhat.telemetry.enabled": true,
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "javascript.updateImportsOnFileMove.enabled": "always",
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "editor.inlineSuggest.enabled": true
 }
