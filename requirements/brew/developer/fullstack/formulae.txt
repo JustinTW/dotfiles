@@ -1,5 +1,6 @@
 awscli
 aws-iam-authenticator
+aws-sam-cli
 cfn-lint
 fortio
 helm
@@ -7,6 +8,8 @@ iperf
 k9s
 libffi
 minicom
+orbstack
 pnpm
 pulumi
-virtualbox
+pyenv
+postgresql

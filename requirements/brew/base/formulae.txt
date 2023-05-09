@@ -4,7 +4,6 @@ curl
 docker
 docker-compose
 docker-credential-helper-ecr
-fasd
 gcc
 git
 gnu-sed
@@ -15,7 +14,6 @@ jq
 mas
 mtr
 netcat
-rancher
 rsync
 svn
 telnet
