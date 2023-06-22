@@ -4,7 +4,6 @@ curl
 docker
 docker-compose
 docker-credential-helper-ecr
-fasd
 gcc
 git
 gnu-sed

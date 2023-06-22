@@ -1,4 +1,3 @@
-homebrew/cask-drivers/logitech-g-hub
 homebrew/cask-fonts/font-fira-code
 homebrew/cask-fonts/font-fira-mono
 homebrew/cask-fonts/font-fira-mono-for-powerline
@@ -8,6 +7,7 @@ homebrew/cask/google-chrome
 homebrew/cask/google-drive
 homebrew/cask/iterm2
 homebrew/cask/keka
+homebrew/cask/logitech-g-hub
 homebrew/cask/logseq
 homebrew/cask/motrix
 homebrew/cask/notion
