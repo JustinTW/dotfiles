@@ -9,7 +9,7 @@ export PATH="${PYENV_ROOT}/bin:${PATH}"
 eval "$(pyenv init --path)"
 
 export ZSH="${HOME}/.oh-my-zsh"
-plugins=(aliases autojump autopep8 aws brew command-not-found common-aliases compleat cp dircycle dirpersist docker docker-compose encode64 extract fasd git git-auto-fetch git-extras git-flow git-flow-avh gitignore helm history jump kubectl kubectx macos npm nvm pep8 perms pip pyenv python rsync sudo systemadmin tmux virtualenv vscode z zsh-nvm)
+plugins=(aliases autojump autopep8 aws brew command-not-found common-aliases compleat cp dircycle dirpersist docker docker-compose encode64 extract fasd git git-auto-fetch git-extras git-flow git-flow-avh gitignore helm history jump kubectl kubectx macos npm nvm pep8 perms pip pyenv python rsync sudo systemadmin tmux virtualenv vscode z)
 ZSH_THEME="robbyrussell"
 source ${ZSH}/oh-my-zsh.sh
 zstyle ':omz:update' mode disabled  # disable automatic updates
