@@ -2,7 +2,7 @@ homebrew/cask-fonts/font-fira-code
 homebrew/cask-fonts/font-fira-mono
 homebrew/cask-fonts/font-fira-mono-for-powerline
 homebrew/cask-fonts/font-fira-sans
-homebrew/cask-fonts/font-meslo-for-powerline
+homebrew/cask/font-meslo-for-powerline
 homebrew/cask/gimp
 homebrew/cask/google-chrome
 homebrew/cask/google-drive
