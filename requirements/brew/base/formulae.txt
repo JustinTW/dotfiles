@@ -17,13 +17,11 @@ netcat
 rancher
 rsync
 svn
-telnet
 tmux
 trash-cli
 tree
 unzip
 watch
 wget
-yq
 zsh
 zsync
