@@ -59,35 +59,45 @@ install_python() {
     eval "$(pyenv init -)"
     eval "$(pyenv virtualenv-init -)"
   fi
-  if [[ ! -d ${HOME}/.pyenv/versions/pypy2.7-7.3.9 ]]; then
-    pyenv install pypy2.7-7.3.9
-    pyenv global pypy2.7-7.3.9
+  if [[ ! -d ${HOME}/.pyenv/versions/pypy2.7-7.3.12 ]]; then
+    pyenv install pypy2.7-7.3.12
+    pyenv global pypy2.7-7.3.12
     pip3 install virtualenvwrapper pygments
   fi
-  if [[ ! -d ${HOME}/.pyenv/versions/pypy3.8-7.3.9 ]]; then
-    pyenv install pypy3.8-7.3.9
-    pyenv global pypy3.8-7.3.9
+  if [[ ! -d ${HOME}/.pyenv/versions/pypy3.8-7.3.12 ]]; then
+    pyenv install pypy3.8-7.3.12
+    pyenv global pypy3.8-7.3.12
     pip3 install virtualenvwrapper pygments
   fi
-  if [[ ! -d ${HOME}/.pyenv/versions/pypy3.9-7.3.9 ]]; then
-    pyenv install pypy3.9-7.3.9
-    pyenv global pypy3.9-7.3.9
+  if [[ ! -d ${HOME}/.pyenv/versions/pypy3.9-7.3.12 ]]; then
+    pyenv install pypy3.9-7.3.12
+    pyenv global pypy3.9-7.3.12
+    pip3 install virtualenvwrapper pygments
+  fi
+
+  if [[ ! -d ${HOME}/.pyenv/versions/pypy3.10-7.3.12 ]]; then
+    pyenv install pypy3.10-7.3.12
+    pyenv global pypy3.10-7.3.12
     pip3 install virtualenvwrapper pygments
   fi
 
   if [[ ! -d ${HOME}/.pyenv/versions/2.7 ]]; then
-    pyenv virtualenv pypy2.7-7.3.9 2.7
+    pyenv virtualenv pypy2.7-7.3.12 2.7
   fi
 
   if [[ ! -d ${HOME}/.pyenv/versions/3.8 ]]; then
-    pyenv virtualenv pypy3.8-7.3.9 3.8
+    pyenv virtualenv pypy3.8-7.3.12 3.8
   fi
 
   if [[ ! -d ${HOME}/.pyenv/versions/3.9 ]]; then
-    pyenv virtualenv pypy3.9-7.3.9 3.9
+    pyenv virtualenv pypy3.9-7.3.12 3.9
   fi
 
-  pyenv global 3.8
+  if [[ ! -d ${HOME}/.pyenv/versions/3.10 ]]; then
+    pyenv virtualenv pypy3.10-7.3.12 3.10
+  fi
+
+  pyenv global 3.10
 }
 
 install_nvm() {

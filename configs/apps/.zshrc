@@ -24,3 +24,11 @@ source /usr/local/opt/powerlevel10k/powerlevel10k.zsh-theme
 [[ -s "${HOME}/.gvm/scripts/gvm" ]] && source "${HOME}/.gvm/scripts/gvm"
 
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+# pnpm
+export PNPM_HOME="/Users/justinct_liu/Library/pnpm"
+case ":$PATH:" in
+  *":$PNPM_HOME:"*) ;;
+  *) export PATH="$PNPM_HOME:$PATH" ;;
+esac
+# pnpm end
