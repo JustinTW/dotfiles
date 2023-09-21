@@ -4,17 +4,8 @@ source ./scripts/libs/common
 source ./scripts/libs/osx
 
 main() {
-  config_sudo
-  setup_osx_gui
   install_xcode
-  install_homebrew
-  brew_install_with_requirement ./requirements/brew/base/formulae.txt
   brew_install_with_requirement ./requirements/brew/developer/fullstack/formulae.txt
-  config_zsh
-  config_git
-  config_iterm2
-  config_autojump
-  config_apps
   install_pyenv
   install_python
   install_nvm
@@ -22,9 +13,7 @@ main() {
   install_gvm
   install_go
   install_vscode_ext
-  brew_install_with_requirement ./requirements/brew/base/cask.txt
   brew_install_with_requirement ./requirements/brew/developer/fullstack/cask.txt
-  mac_app_store_install_applications ./requirements/mac-app-store/base.txt
 }
 
 main

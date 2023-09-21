@@ -9,7 +9,6 @@ homebrew/cask/google-drive
 homebrew/cask/iterm2
 homebrew/cask/keka
 homebrew/cask/logitech-g-hub
-homebrew/cask/logseq
 homebrew/cask/motrix
 homebrew/cask/notion
 homebrew/cask/postman
