@@ -74,7 +74,7 @@ install_python() {
 
 
   if [[ ! -d ${HOME}/.pyenv/versions/3.10 ]]; then
-    pyenv virtualenv pypy3.10-7.3.12 3.10
+    pyenv virtualenv pypy3.10-7.3.13 3.10
   fi
 
   if [[ ! -d ${HOME}/.pyenv/versions/3.11.7 ]]; then
@@ -99,9 +99,9 @@ install_node() {
     [ -s "${NVM_DIR}/nvm.sh" ] && \. "${NVM_DIR}/nvm.sh"                   # This loads nvm
     [ -s "${NVM_DIR}/bash_completion" ] && \. "${NVM_DIR}/bash_completion" # This loads nvm bash_completion
   fi
-  nvm install 16
-  nvm use 16
-  nvm alias default 16
+  nvm install 20
+  nvm use 20
+  nvm alias default 20
   npm install -g yarn
 
   ZSH_CUSTOM=${PWD}/configs/apps/.oh-my-zsh/custom
@@ -128,7 +128,7 @@ install_vscode_ext() {
 }
 
 install_kubectl() {
-  if ! command -v kubectl >/dev/null 2>&1; then
+  if command -v kubectl >/dev/null 2>&1; then
     echo "kubectl is already installed."
     return
   fi

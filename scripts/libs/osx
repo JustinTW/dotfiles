@@ -92,18 +92,19 @@ install_go() {
   source ${HOME}/.gvm/scripts/gvm
 
   OUTPUT=$(gvm list)
-  if echo "$OUTPUT" | grep -q "go1.20"; then
-    echo "go1.20 is already installed."
+  if echo "$OUTPUT" | grep -q "go1.21"; then
+    echo "go1.21 is already installed."
     return
   fi
   brew install go
-  gvm install go1.15.5
-  gvm use go1.15.5 --default
+  # gvm install go1.15.5
+  # gvm use go1.15.5 --default
+  # brew uninstall go
+  # export GOROOT_BOOTSTRAP=${GOROOT}
+  # gvm install go1.18
+  gvm install go1.21
+  gvm use go1.21 --default
   brew uninstall go
-  export GOROOT_BOOTSTRAP=${GOROOT}
-  gvm install go1.18
-  gvm install go1.20
-  gvm use go1.20 --default
 }
 
 mac_app_store_install_applications() {

@@ -54,3 +54,5 @@ esac
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
 export JAVA_HOME=/Applications/Android\ Studio.app/Contents/jbr/Contents/Home
+
+[[ -s "/Users/robo/.gvm/scripts/gvm" ]] && source "/Users/robo/.gvm/scripts/gvm"
