@@ -49,5 +49,8 @@
   },
   "[typescriptreact]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
-  }
+  },
+  "workbench.editor.enablePreview": false,
+  "puppet.installDirectory": "/opt/puppetlabs",
+  "puppet.installType": "agent"
 }
