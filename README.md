@@ -9,3 +9,5 @@ cp configs/dotenv/example.env .env
 
 ln -sf ~/dotfiles/configs/apps/.oh-my-zsh/custom/example-variables/variables-justinmbp.zsh ~/dotfiles/configs/apps/.oh-my-zsh/custom/variables.zsh
 ```
+
+install https://lemon.qq.com/

@@ -11,4 +11,3 @@ minicom
 orbstack
 pnpm
 pulumi
-virtualbox

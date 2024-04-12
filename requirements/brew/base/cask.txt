@@ -19,4 +19,3 @@ homebrew/cask/teamviewer
 homebrew/cask/telegram
 homebrew/cask/visual-studio-code
 homebrew/cask/vlc
-homebrew/cask/vnc-viewer

@@ -5,5 +5,4 @@ F5Access
 LINE
 MenubarX
 Microsoft Remote Desktop
-Tencent Lemon Lite
 iRightMouse

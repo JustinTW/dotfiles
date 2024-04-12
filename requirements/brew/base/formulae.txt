@@ -14,7 +14,6 @@ jq
 mas
 mtr
 netcat
-rancher
 rsync
 svn
 telnet

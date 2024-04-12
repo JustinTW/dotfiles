@@ -54,6 +54,13 @@ config_sudo() {
 }
 
 config_zsh() {
+  # fix zsh install pip failed
+  mkdir -p "${HOME}/.config/pip"
+  if ! grep -q "break-system-packages = true" "${HOME}/.config/pip/pip.conf"; then
+    echo "[global]" >> "${HOME}/.config/pip/pip.conf"
+    echo "break-system-packages = true" >> "${HOME}/.config/pip/pip.conf"
+  fi
+
   # oh-my-zsh
   rm -rf "${HOME}/.oh-my-zsh"
   wget -qO- https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh | bash || true
