@@ -52,5 +52,6 @@
   },
   "workbench.editor.enablePreview": false,
   "puppet.installDirectory": "/opt/puppetlabs",
-  "puppet.installType": "agent"
+  "puppet.installType": "agent",
+  "github.copilot.editor.enableAutoCompletions": true
 }

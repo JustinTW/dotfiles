@@ -11,3 +11,10 @@ ln -sf ~/dotfiles/configs/apps/.oh-my-zsh/custom/example-variables/variables-jus
 ```
 
 install https://lemon.qq.com/
+
+
+## Upgrade
+
+```
+brew upgrade pulumi pnpm homebrew/cask/visual-studio-code
+```

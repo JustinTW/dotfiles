@@ -5,9 +5,19 @@ if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
 
-if [[ -r "${XDG_CACHE_HOME:-${HOME}/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-  source "${XDG_CACHE_HOME:-${HOME}/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
-fi
+# p10k
+[[ ! -f "${HOME}/.p10k.zsh" ]] || source "${HOME}/.p10k.zsh"
+
+# p10k paths
+possible_p10k_paths=(
+  $(brew --prefix)/usr/local/opt/powerlevel10k/powerlevel10k.zsh-theme
+  /usr/local/Cellar/powerlevel10k/1.19.0/share/powerlevel10k/powerlevel10k.zsh-theme
+  $(brew --prefix)/opt/powerlevel10k/share/powerlevel10k/powerlevel10k.zsh-theme
+)
+# foreach possible_p10k_paths if exist, source it
+for p10k_path in "${possible_p10k_paths[@]}"; do
+  [[ ! -f "${p10k_path}" ]] || source "${p10k_path}"
+done
 
 ZSH_CUSTOM=${HOME}/dotfiles/configs/apps/.oh-my-zsh/custom
 
@@ -26,15 +36,6 @@ export EDITOR=vim
 export LANG=en_US.UTF-8
 export ARCHFLAGS="-arch x86_64"
 
-# p10k
-[[ ! -f "${HOME}/.p10k.zsh" ]] || source "${HOME}/.p10k.zsh"
-
-# powerlevel10k lagcy
-[[ ! -f /usr/local/opt/powerlevel10k/powerlevel10k.zsh-theme ]] || source /usr/local/opt/powerlevel10k/powerlevel10k.zsh-theme
-
-# powerlevel10k
-[[ ! -f /usr/local/Cellar/powerlevel10k/1.19.0/share/powerlevel10k/powerlevel10k.zsh-theme ]] || source /usr/local/Cellar/powerlevel10k/1.19.0/share/powerlevel10k/powerlevel10k.zsh-theme
-
 # gvm
 [[ -s "${HOME}/.gvm/scripts/gvm" ]] && source "${HOME}/.gvm/scripts/gvm"
 
@@ -42,6 +43,12 @@ export ARCHFLAGS="-arch x86_64"
 export NVM_DIR="${HOME}/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+# Avoid console output after instant prompt preamble
+if [[ -z "${POWERLEVEL9K_INSTANT_PROMPT}" ]]; then
+  # nvm instal v18 requirements
+  brew install python-setuptools
+fi
 
 # pnpm
 export PNPM_HOME="${HOME}/Library/pnpm"

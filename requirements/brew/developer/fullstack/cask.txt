@@ -1,3 +1,4 @@
 homebrew/cask/dbeaver-community
 homebrew/cask/slack
 txn2/tap/kubefwd
+puppetlabs/puppet/puppet-agent
