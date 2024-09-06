@@ -8,3 +8,12 @@ function dcc(){
 function gcam(){
   git commit -m $@ -S
 }
+
+function vsc () {
+	if (( $# ))
+	then
+		cursor $@
+	else
+		cursor .
+	fi
+}

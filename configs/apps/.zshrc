@@ -63,3 +63,5 @@ esac
 export JAVA_HOME=/Applications/Android\ Studio.app/Contents/jbr/Contents/Home
 
 [[ -s "/Users/robo/.gvm/scripts/gvm" ]] && source "/Users/robo/.gvm/scripts/gvm"
+
+[[ -s "/Users/justinct_liu/.gvm/scripts/gvm" ]] && source "/Users/justinct_liu/.gvm/scripts/gvm"

@@ -53,5 +53,6 @@
   "workbench.editor.enablePreview": false,
   "puppet.installDirectory": "/opt/puppetlabs",
   "puppet.installType": "agent",
-  "github.copilot.editor.enableAutoCompletions": true
+  "github.copilot.editor.enableAutoCompletions": true,
+  "typescript.updateImportsOnFileMove.enabled": "always"
 }
