@@ -10,6 +10,7 @@ homebrew/cask/google-drive
 homebrew/cask/iterm2
 homebrew/cask/keka
 homebrew/cask/logitech-g-hub
+homebrew/cask/microsoft-edge
 homebrew/cask/motrix
 homebrew/cask/notion
 homebrew/cask/postman
@@ -19,4 +20,4 @@ homebrew/cask/spotify
 homebrew/cask/teamviewer
 homebrew/cask/telegram
 homebrew/cask/visual-studio-code
-homebrew/cask/vlc
+

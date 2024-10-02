@@ -11,3 +11,5 @@ minicom
 orbstack
 pnpm
 pulumi
+pyenv
+postgresql
