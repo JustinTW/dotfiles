@@ -45,6 +45,7 @@ rsync -avz --no-group \
   --exclude='vendor' \
   --exclude='node_modules' \
   --exclude='.venv' \
+  --exclude='venv' \
   --exclude='_mod' \
   --exclude='.pnpm-store' \
   /Volumes/DATA /Volumes/Private/backup/Justin/MacBookPro-Moxa/Data/2024-10-02
