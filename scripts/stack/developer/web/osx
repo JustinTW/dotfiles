@@ -11,7 +11,7 @@ main() {
   install_nvm
   install_node
   install_gvm
-  # install_go
+  install_go
   install_vscode_ext
   install_kubectl
   brew_install_with_requirement ./requirements/brew/developer/fullstack/cask.txt

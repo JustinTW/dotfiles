@@ -7,6 +7,7 @@ setup_osx_gui() {
     echo "command defaults not found"
     return
   fi
+
   defaults write com.apple.finder AppleShowAllFiles YES           # show hidden files
   defaults write com.apple.dock persistent-apps -array            # remove icons in Dock
   defaults write com.apple.dock tilesize -int 72                  # smaller icon sizes in Dock
@@ -42,6 +43,7 @@ install_homebrew() {
     return
   fi
   NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+  eval "$(/opt/homebrew/bin/brew shellenv)"
   brew update
 }
 
@@ -99,8 +101,8 @@ install_go() {
   source ${HOME}/.gvm/scripts/gvm
 
   OUTPUT=$(gvm list)
-  if echo "$OUTPUT" | grep -q "go1.21"; then
-    echo "go1.21 is already installed."
+  if echo "$OUTPUT" | grep -q "go1.23"; then
+    echo "go1.23 is already installed."
     return
   fi
   brew install go
@@ -109,8 +111,8 @@ install_go() {
   # brew uninstall go
   # export GOROOT_BOOTSTRAP=${GOROOT}
   # gvm install go1.18
-  gvm install go1.21
-  gvm use go1.21 --default
+  gvm install go1.23
+  gvm use go1.23 --default
   brew uninstall go
 }
 

@@ -4,5 +4,4 @@ Evernote
 F5Access
 LINE
 MenubarX
-Microsoft Remote Desktop
 iRightMouse

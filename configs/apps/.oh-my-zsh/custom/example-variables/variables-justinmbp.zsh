@@ -5,4 +5,5 @@ export PATH="${HOME}/.rd/bin:$PATH"
 export PATH="/Applications/VMware OVF Tool/:$PATH"
 export PATH="${HOME}/Library/pnpm:$PATH"
 export PATH="${HOME}/.local/bin:$PATH"
+export PATH="/usr/local/bin:$PATH"
 export DOCKER_HOST=unix:///var/run/docker.sock
