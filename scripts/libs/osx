@@ -149,3 +149,11 @@ install_parallels_desktop() {
   # fi
   download_dmg_files https://download.parallels.com/desktop/v15/15.1.5-47309/ParallelsDesktop-15.1.5-47309.dmg
 }
+
+install_session_manager_plugin() {
+  curl "https://s3.amazonaws.com/session-manager-downloads/plugin/latest/mac_arm64/sessionmanager-bundle.zip" -o "sessionmanager-bundle.zip"
+  unzip sessionmanager-bundle.zip
+  sudo ./sessionmanager-bundle/install -i /usr/local/sessionmanagerplugin -b /usr/local/bin/session-manager-plugin
+  sudo rm -rf sessionmanager-bundle.zip
+  sudo rm -rf sessionmanager-bundle
+}

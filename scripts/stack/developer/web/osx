@@ -14,6 +14,7 @@ main() {
   install_go
   install_vscode_ext
   install_kubectl
+  install_session_manager_plugin
   brew_install_with_requirement ./requirements/brew/developer/fullstack/cask.txt
 }
 
