@@ -2,7 +2,7 @@
 alias rm='trash-put'
 
 # git
-alias gpp='git pull && git push'
+alias gpp='git pull && git push && git pull && git push'
 
 # developer tools
 alias cw='cd ~/workspace'

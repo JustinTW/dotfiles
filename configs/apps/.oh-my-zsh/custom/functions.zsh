@@ -12,8 +12,8 @@ function gcam(){
 function vsc () {
 	if (( $# ))
 	then
-		cursor $@
+		code $@
 	else
-		cursor .
+		code .
 	fi
 }

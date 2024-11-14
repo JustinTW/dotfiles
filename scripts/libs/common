@@ -18,7 +18,7 @@ link_dotfile() {
 }
 
 config_apps() {
-  link_dotfile "${HOME}/Library/Application Support/Code/User/settings.json" "${PWD}/configs/apps/vscode/settings.json"
+  link_dotfile "${HOME}/Library/Application Support/Cursor/User/settings.json" "${PWD}/configs/apps/cursor/settings.json"
   link_dotfile "${HOME}/.gitignore_global" "${PWD}/configs/apps/.gitignore_global"
   link_dotfile "${HOME}/.p10k.zsh" "${PWD}/configs/apps/.p10k.zsh"
   link_dotfile "${HOME}/.vimrc" "${PWD}/configs/apps/.vimrc"
@@ -60,29 +60,34 @@ install_python() {
     eval "$(pyenv virtualenv-init -)"
   fi
 
-  if [[ ! -d ${HOME}/.pyenv/versions/pypy3.10-7.3.13 ]]; then
-    pyenv install pypy3.10-7.3.13
-    pyenv global pypy3.10-7.3.13
+  # install pypy 3.10
+  if [[ ! -d ${HOME}/.pyenv/versions/pypy3.10-7.3.17 ]]; then
+    pyenv install pypy3.10-7.3.17
+    pyenv global pypy3.10-7.3.17
     pip3 install virtualenvwrapper pygments
+    # Install poetry
+    curl -sSL https://install.python-poetry.org | python3 -
   fi
 
-  if [[ ! -d ${HOME}/.pyenv/versions/3.11.7 ]]; then
-    pyenv install 3.11.7
-    pyenv global 3.11.7
-    pip3 install virtualenvwrapper pygments
-  fi
-
-
+  # create virtualenv for python 3.10
   if [[ ! -d ${HOME}/.pyenv/versions/3.10 ]]; then
-    pyenv virtualenv pypy3.10-7.3.13 3.10
+    pyenv virtualenv pypy3.10-7.3.17 3.10
+    pyenv global 3.10
   fi
 
-  if [[ ! -d ${HOME}/.pyenv/versions/3.11.7 ]]; then
-    pyenv virtualenv 3.11.7
-  fi
+  # python 3.11 not working on macOS arm64
+  # if [[ ! -d ${HOME}/.pyenv/versions/3.11 ]]; then
+  #   brew install openssl readline sqlite3 xz zlib
+  #   pyenv install 3.11
+  #   CONFIGURE_OPTS="--with-openssl=$(brew --prefix openssl)" pyenv install 3.11
+  #   pyenv global 3.11
+  #   pip3 install virtualenvwrapper pygments
+  # fi
+  # if [[ ! -d ${HOME}/.pyenv/versions/3.11 ]]; then
+  #   pyenv virtualenv 3.11
+  # fi
 
-  pyenv global 3.11.7
-  curl -sSL https://install.python-poetry.org | python3 -
+
 }
 
 install_nvm() {
@@ -90,7 +95,7 @@ install_nvm() {
     echo "nvm is already installed."
     return
   fi
-  wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.2/install.sh | bash
+  wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
 }
 
 install_node() {
@@ -121,9 +126,18 @@ install_gvm() {
 }
 
 install_vscode_ext() {
+  if command -v cursor >/dev/null 2>&1; then
+    if [[ ! -f /usr/local/bin/code ]]; then
+      ln -sf /Applications/Cursor.app/Contents/Resources/app/bin/code /usr/local/bin/code
+    fi
+  fi
   if command -v code >/dev/null 2>&1; then
     echo "Installing vscode extensions..."
     cat "${PWD}/requirements/vscode/extensions.txt" | xargs -L 1 code --install-extension >/dev/null 2>&1 || true
+  fi
+  if command -v cursor >/dev/null 2>&1; then
+    echo "Installing vscode extensions..."
+    cat "${PWD}/requirements/vscode/extensions.txt" | xargs -L 1 cursor --install-extension >/dev/null 2>&1 || true
   fi
 }
 
@@ -132,8 +146,11 @@ install_kubectl() {
     echo "kubectl is already installed."
     return
   fi
-  curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/darwin/amd64/kubectl"
+  OS="$(uname | tr '[:upper:]' '[:lower:]')"
+  ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')"
+  curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/$OS/$ARCH/kubectl"
   chmod +x ./kubectl
+  sudo mkdir -p /usr/local/bin
   sudo mv ./kubectl /usr/local/bin/kubectl
 
   (

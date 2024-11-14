@@ -1,32 +1,28 @@
 {
-  "customizeUI.font.monospace": "Fira Mono",
-  "customizeUI.font.regular": "Fira Sans",
-  "customizeUI.fontSizeMap": {
-    "10px": "12px",
-    "11px": "13px",
-    "12px": "14px",
-    "13px": "15px",
-    "19px": "11px",
-    "monospace": "15px"
-  },
   "editor.accessibilitySupport": "off",
   "editor.fontFamily": "'Fira Code', Menlo, Monaco, 'Courier New', monospace",
+  "editor.fontLigatures": true,
   "editor.fontSize": 20,
   "editor.minimap.enabled": false,
   "editor.multiCursorModifier": "ctrlCmd",
   "editor.renderControlCharacters": true,
-  "editor.renderWhitespace": "all",
+  "editor.renderWhitespace": "selection",
   "editor.snippetSuggestions": "top",
   "editor.tabSize": 2,
   "editor.wordWrap": "on",
-  "explorer.confirmDelete": false,
   "explorer.confirmDragAndDrop": false,
+  "explorer.confirmDelete": false,
+  "explorer.confirmPasteNative": false,
   "files.trimTrailingWhitespace": true,
   "workbench.startupEditor": "none",
-  "terminal.integrated.env.osx": {
-    "FIG_NEW_SESSION": "1"
-  },
-  "redhat.telemetry.enabled": true,
+  "workbench.editor.enablePreview": false,
+  "window.commandCenter": true,
+  "makefile.configureOnOpen": false,
+  "redhat.telemetry.enabled": false,
+  "telemetry.telemetryLevel": "off",
+  "puppet.installDirectory": "/opt/puppetlabs",
+  "puppet.installType": "agent",
+  "typescript.updateImportsOnFileMove.enabled": "always",
   "[typescript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
@@ -49,11 +45,5 @@
   },
   "[typescriptreact]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
-  "workbench.editor.enablePreview": false,
-  "puppet.installDirectory": "/opt/puppetlabs",
-  "puppet.installType": "agent",
-  "github.copilot.editor.enableAutoCompletions": true,
-  "typescript.updateImportsOnFileMove.enabled": "always",
-  "makefile.configureOnOpen": false
+  }
 }
