@@ -54,5 +54,6 @@
   "puppet.installDirectory": "/opt/puppetlabs",
   "puppet.installType": "agent",
   "github.copilot.editor.enableAutoCompletions": true,
-  "typescript.updateImportsOnFileMove.enabled": "always"
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "makefile.configureOnOpen": false
 }
