@@ -116,6 +116,34 @@ install_go() {
   brew uninstall go
 }
 
+config_docker_compose() {
+  # 設定檔案路徑
+  CONFIG_FILE="$HOME/.docker/config.json"
+  PLUGIN_DIR="/usr/local/lib/docker/cli-plugins"
+
+  # 檢查設定檔案是否存在
+  if [[ ! -f "$CONFIG_FILE" ]]; then
+    # 如果檔案不存在，創建一個基本的 JSON 結構
+    echo '{}' > "$CONFIG_FILE"
+  fi
+
+  # 檢查 cliPluginsExtraDirs 是否已存在
+  if ! jq -e '.cliPluginsExtraDirs' "$CONFIG_FILE" > /dev/null; then
+    # 如果不存在，添加 cliPluginsExtraDirs
+    jq --arg dir "$PLUGIN_DIR" '.cliPluginsExtraDirs = [$dir]' "$CONFIG_FILE" > tmp.$$.json && mv tmp.$$.json "$CONFIG_FILE"
+    echo "已添加 cliPluginsExtraDirs: $PLUGIN_DIR"
+  else
+    # 如果已存在，檢查是否已包含該路徑
+    if ! jq -e --arg dir "$PLUGIN_DIR" '.cliPluginsExtraDirs | index($dir)' "$CONFIG_FILE" > /dev/null; then
+      # 如果不包含，將路徑添加到 cliPluginsExtraDirs
+      jq --arg dir "$PLUGIN_DIR" '.cliPluginsExtraDirs += [$dir]' "$CONFIG_FILE" > tmp.$$.json && mv tmp.$$.json "$CONFIG_FILE"
+      echo "已將 $PLUGIN_DIR 添加到 cliPluginsExtraDirs"
+    else
+      echo "cliPluginsExtraDirs 已包含 $PLUGIN_DIR"
+    fi
+  fi
+}
+
 mac_app_store_install_applications() {
   while read line; do
     OUTPUT=$(mas list)
