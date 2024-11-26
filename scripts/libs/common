@@ -75,18 +75,21 @@ install_python() {
     pyenv global 3.10
   fi
 
-  # python 3.11 not working on macOS arm64
-  # if [[ ! -d ${HOME}/.pyenv/versions/3.11 ]]; then
-  #   brew install openssl readline sqlite3 xz zlib
-  #   pyenv install 3.11
-  #   CONFIGURE_OPTS="--with-openssl=$(brew --prefix openssl)" pyenv install 3.11
-  #   pyenv global 3.11
-  #   pip3 install virtualenvwrapper pygments
-  # fi
-  # if [[ ! -d ${HOME}/.pyenv/versions/3.11 ]]; then
-  #   pyenv virtualenv 3.11
-  # fi
 
+
+
+  # python 3.11 not working on macOS arm64
+  if [[ ! -d ${HOME}/.pyenv/versions/3.11 ]]; then
+    # ref: https://github.com/pyenv/pyenv/issues/2624#issuecomment-1435057766
+    brew uninstall --ignore-dependencies openssl gettext readline
+    /usr/bin/arch "-$(arch)" brew install openssl gettext readline
+    /usr/bin/arch "-$(arch)" pyenv install 3.11
+    pyenv global 3.11
+    pip3 install virtualenvwrapper pygments
+  fi
+  if [[ ! -d ${HOME}/.pyenv/versions/3.11 ]]; then
+    pyenv virtualenv 3.11
+  fi
 
 }
 
