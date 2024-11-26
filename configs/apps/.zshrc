@@ -36,7 +36,9 @@ zstyle ':omz:update' mode disabled  # disable automatic updates
 # User configuration
 export EDITOR=vim
 export LANG=en_US.UTF-8
-export ARCHFLAGS="-arch x86_64"
+
+# Automatically detect system architecture using uname
+export ARCHFLAGS="-arch $(uname -m)"
 
 # gvm
 [[ -s "${HOME}/.gvm/scripts/gvm" ]] && source "${HOME}/.gvm/scripts/gvm"
