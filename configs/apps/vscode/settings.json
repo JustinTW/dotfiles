@@ -57,5 +57,6 @@
   "typescript.updateImportsOnFileMove.enabled": "always",
   "makefile.configureOnOpen": false,
   "editor.fontLigatures": true,
-  "workbench.colorTheme": "Colorizer"
+  "workbench.colorTheme": "Colorizer",
+  "go.toolsManagement.autoUpdate": true
 }
