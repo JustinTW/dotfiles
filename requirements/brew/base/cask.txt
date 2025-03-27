@@ -2,6 +2,7 @@ homebrew/cask/font-fira-code
 homebrew/cask/font-fira-mono
 homebrew/cask/font-fira-mono-for-powerline
 homebrew/cask/font-fira-sans
+homebrew/cask/font-maple-mono-cn
 homebrew/cask/font-meslo-for-powerline
 homebrew/cask/microsoft-edge
 homebrew/cask/gimp

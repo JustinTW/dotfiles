@@ -18,3 +18,6 @@ alias kubectx='kubectl ctx'
 alias kubens='kubectl ns'
 
 kubectx_mapping[moxa-cloud-platform-dev-0-eksCluster-efc12d7]="dev"
+
+# attach aws ssm
+alias ssm='aws ssm start-session --region us-west-2 --target'
