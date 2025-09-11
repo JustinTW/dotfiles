@@ -48,12 +48,6 @@ export ARCHFLAGS="-arch $(uname -m)"
 # [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 # [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
-# volta
-export VOLTA_FEATURE_PNPM=1
-
-# volta
-# export VOLTA_FEATURE_PNPM=1
-
 # Avoid console output after instant prompt preamble
 if [[ -z "${POWERLEVEL9K_INSTANT_PROMPT}" ]]; then
   # nvm instal v18 requirements
