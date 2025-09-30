@@ -41,7 +41,7 @@ export LANG=en_US.UTF-8
 export ARCHFLAGS="-arch $(uname -m)"
 
 # gvm
-[[ -s "${HOME}/.gvm/scripts/gvm" ]] && source "${HOME}/.gvm/scripts/gvm"
+[[ -s "${HOME}/.gvm/scripts/gvm" ]] && source "${HOME}/.gvm/scripts/gvm" || true
 
 # nvm
 # export NVM_DIR="${HOME}/.nvm"
@@ -66,6 +66,7 @@ esac
 
 export JAVA_HOME=/Applications/Android\ Studio.app/Contents/jbr/Contents/Home
 
-[[ -s "/Users/robo/.gvm/scripts/gvm" ]] && source "/Users/robo/.gvm/scripts/gvm"
-
-[[ -s "/Users/justinct_liu/.gvm/scripts/gvm" ]] && source "/Users/justinct_liu/.gvm/scripts/gvm"
+HOMEBREW_COMMAND_NOT_FOUND_HANDLER="$(brew --repository)/Library/Homebrew/command-not-found/handler.sh"
+if [ -f "$HOMEBREW_COMMAND_NOT_FOUND_HANDLER" ]; then
+  source "$HOMEBREW_COMMAND_NOT_FOUND_HANDLER";
+fi
