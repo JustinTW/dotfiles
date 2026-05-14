@@ -88,5 +88,7 @@
   ],
   "kilo-code.deniedCommands": [],
   "claudeCode.selectedModel": "default",
-  "claudeCode.preferredLocation": "panel"
+  "claudeCode.preferredLocation": "panel",
+  "python.defaultInterpreterPath": "/opt/homebrew/bin/python3.13",
+  "claudeCode.allowDangerouslySkipPermissions": true
 }

@@ -45,6 +45,20 @@ if [[ -s "${HOME}/.gvm/scripts/gvm" ]] && [[ -o interactive ]]; then
   source "${HOME}/.gvm/scripts/gvm" 2>/dev/null || true
 fi
 
+# Auto-switch Go version based on .go-version file
+autoload -U add-zsh-hook
+_auto_gvm_use() {
+  if [[ -f .go-version ]]; then
+    local ver=$(cat .go-version)
+    local current=$(go version 2>/dev/null | awk '{print $3}')
+    if [[ "$current" != "$ver" ]]; then
+      gvm use "$ver" --default 2>/dev/null || true
+    fi
+  fi
+}
+add-zsh-hook chpwd _auto_gvm_use
+_auto_gvm_use
+
 # Avoid console output after instant prompt preamble
 if [[ -z "${POWERLEVEL9K_INSTANT_PROMPT}" ]]; then
   # nvm instal v18 requirements
@@ -67,3 +81,24 @@ HOMEBREW_COMMAND_NOT_FOUND_HANDLER="$(brew --repository)/Library/Homebrew/comman
 if [ -f "$HOMEBREW_COMMAND_NOT_FOUND_HANDLER" ]; then
   source "$HOMEBREW_COMMAND_NOT_FOUND_HANDLER";
 fi
+
+# Claude CLI Homebrew Priority
+# 确保 Homebrew 路径优先于 nvm，用于全局工具如 Claude CLI
+export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+
+
+# Rust / Cargo
+. "$HOME/.cargo/env"
+
+# Solana CLI
+export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
+
+# Anchor (avm)
+export PATH="$HOME/.avm/bin:$PATH"
+
+# bun completions
+[ -s "/Users/justinct_liu/.bun/_bun" ] && source "/Users/justinct_liu/.bun/_bun"
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
