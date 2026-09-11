@@ -1,4 +1,3 @@
-homebrew/cask/dbeaver-community
-homebrew/cask/visual-studio-code
-txn2/tap/kubefwd
+dbeaver-community
+orbstack
 puppetlabs/puppet/puppet-agent-8

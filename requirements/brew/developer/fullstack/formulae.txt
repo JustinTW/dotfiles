@@ -8,8 +8,8 @@ iperf
 k9s
 libffi
 minicom
-orbstack
 pnpm
+postgresql
 pulumi
 pyenv
-postgresql
+txn2/tap/kubefwd

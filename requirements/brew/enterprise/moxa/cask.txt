@@ -1,3 +1,2 @@
-azure-cli
-homebrew/cask/microsoft-office
-homebrew/cask/microsoft-teams
+microsoft-office
+microsoft-teams
