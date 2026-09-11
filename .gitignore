@@ -1,1 +1,14 @@
+# Local secrets / machine-specific env
 .env
+configs/apps/.oh-my-zsh/custom/example-variables/
+
+# macOS
+.DS_Store
+
+# Backups created by link_dotfile
+*.pre-*
+
+# Build/download artifacts left by install scripts
+sessionmanager-bundle*
+kubectl
+tmp.*.json

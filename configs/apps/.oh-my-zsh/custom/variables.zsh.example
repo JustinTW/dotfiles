@@ -1,0 +1,27 @@
+# Copy to variables.zsh (gitignored) and fill in per-machine values.
+#
+#   cp configs/apps/.oh-my-zsh/custom/variables.zsh.example \
+#      configs/apps/.oh-my-zsh/custom/variables.zsh
+#
+# Never put real tokens in a tracked file. Prefer pulling them at shell start
+# from the macOS keychain, e.g.
+#   export SOME_TOKEN="$(security find-generic-password -w -s some-token)"
+
+export PATH="${HOME}/.pulumi/bin:$PATH"
+export PATH="${KREW_ROOT:-${HOME}/.krew}/bin:$PATH"
+export PATH="${HOME}/.rd/bin:$PATH"
+export PATH="/Applications/VMware OVF Tool/:$PATH"
+export PATH="${HOME}/.local/bin:$PATH"
+
+export DOCKER_HOST=unix:///var/run/docker.sock
+export AWS_PROFILE=dev
+
+# export PULUMI_CONFIG_PASSPHRASE="$(security find-generic-password -w -s pulumi-passphrase)"
+# export PULUMI_ACCESS_TOKEN="$(security find-generic-password -w -s pulumi-token)"
+# export CONFLUENCE_TOKEN="$(security find-generic-password -w -s confluence-token)"
+# export AZURE_OPENAI_API_KEY="$(security find-generic-password -w -s azure-openai-key)"
+
+# kubectx 的 cluster 顯示名稱（內部 cluster 名稱不該進追蹤檔）。
+# kubectx_mapping 由 oh-my-zsh 的 kubectx plugin 宣告，plugin 在
+# $ZSH_CUSTOM/*.zsh 之前載入，所以這裡可以直接賦值。
+# kubectx_mapping[my-eks-cluster-abc1234]="prod"
