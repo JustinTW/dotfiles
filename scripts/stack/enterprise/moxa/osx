@@ -1,10 +1,14 @@
 #!/usr/bin/env bash
 
-source ./scripts/libs/common
-source ./scripts/libs/osx
+set -euo pipefail
+[[ -n "${DEBUG:-}" ]] && set -x
+
+# shellcheck source=../../../libs/osx
+source "$(dirname "${BASH_SOURCE[0]}")/../../../libs/osx"
 
 main() {
-  brew_install_with_requirement ./requirements/brew/enterprise/moxa/cask.txt
+  brew_install_with_requirement "${DOTFILES_DIR}/requirements/brew/enterprise/moxa/formulae.txt"
+  brew_install_with_requirement "${DOTFILES_DIR}/requirements/brew/enterprise/moxa/cask.txt" --cask
 }
 
 main

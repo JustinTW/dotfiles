@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 
-source ./scripts/libs/common
-source ./scripts/libs/osx
+set -euo pipefail
+[[ -n "${DEBUG:-}" ]] && set -x
+
+# shellcheck source=../../../libs/osx
+source "$(dirname "${BASH_SOURCE[0]}")/../../../libs/osx"
 
 main() {
   config_sudo

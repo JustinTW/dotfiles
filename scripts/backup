@@ -1,51 +1,81 @@
 #!/usr/bin/env bash
+#
+# rsync the home directory and the DATA volume to an external backup volume.
+#
+# Every target is checked for an actual mount before rsync runs. Without that
+# check a missing volume is silently created as a plain directory under
+# /Volumes and the backup fills the boot disk instead.
 
-backup_dir_prefix="/Volumes/Private/backup/Justin/MacBookPro-Moxa/Users/"
+set -euo pipefail
 
-if [ -z "$backup_dir_prefix" ]; then
-  echo "Backup directory not set"
-  exit 1
-fi
+BACKUP_VOLUME="${BACKUP_VOLUME:-/Volumes/Private}"
+BACKUP_ROOT="${BACKUP_ROOT:-${BACKUP_VOLUME}/backup/Justin/MacBookPro-Moxa}"
+DATA_VOLUME="${DATA_VOLUME:-/Volumes/DATA}"
+TODAY="$(date +%Y-%m-%d)"
 
-if [ -d "$backup_dir_prefix" ]; then
-  backup_dir="$backup_dir_prefix/$(date +%Y-%m-%d)"
-  mkdir -p $backup_dir
+HOME_EXCLUDES=(
+  --exclude='.DS_Store' --exclude='.Trash' --exclude='.cache'
+  --exclude='.cursor' --exclude='.docker' --exclude='.gvm'
+  --exclude='.npm' --exclude='.nvm' --exclude='.krew' --exclude='.kube'
+  --exclude='.oh-my-zsh' --exclude='.orbstack' --exclude='.pulumi'
+  --exclude='.pyenv' --exclude='.vscode' --exclude='_cache'
+  --exclude='Applications' --exclude='Library' --exclude='Cache'
+  --exclude='OrbStack' --exclude='VirtualBox VMs' --exclude='chromium'
+  --exclude='go'
+)
 
-  rsync -avz \
-    --exclude='.DS_Store' \
-    --exclude='.Trash' \
-    --exclude='.cache' \
-    --exclude='.cursor' \
-    --exclude='.docker' \
-    --exclude='.gvm' \
-    --exclude='.npm' \
-    --exclude='.nvm' \
-    --exclude='.krew' \
-    --exclude='.kube' \
-    --exclude='.oh-my-zsh' \
-    --exclude='.orbstack' \
-    --exclude='.pulumi' \
-    --exclude='.pyenv' \
-    --exclude='.vscode' \
-    --exclude='_cache' \
-    --exclude='Applications' \
-    --exclude='Library' \
-    --exclude='Cache' \
-    --exclude='OrbStack' \
-    --exclude='VirtualBox VMs' \
-    --exclude='chromium' \
-    --exclude='go' \
-    ~ "$backup_dir"
-fi
+DATA_EXCLUDES=(
+  --exclude='.DS_Store' --exclude='.Trash' --exclude='Library'
+  --exclude='vendor' --exclude='node_modules' --exclude='.venv'
+  --exclude='venv' --exclude='_mod' --exclude='.pnpm-store'
+)
 
-rsync -avz --no-group \
-  --exclude='.DS_Store' \
-  --exclude='.Trash' \
-  --exclude='Library' \
-  --exclude='vendor' \
-  --exclude='node_modules' \
-  --exclude='.venv' \
-  --exclude='venv' \
-  --exclude='_mod' \
-  --exclude='.pnpm-store' \
-  /Volumes/DATA /Volumes/Private/backup/Justin/MacBookPro-Moxa/Data/2024-10-02
+is_mounted() {
+  mount | grep -q " on $1 "
+}
+
+# rsync exits 24 when a file vanishes mid-transfer, which is normal for a live
+# home directory and should not abort the run.
+run_rsync() {
+  local rc=0
+  rsync "$@" || rc=$?
+  if ((rc != 0 && rc != 24)); then
+    echo "rsync failed with exit code $rc" >&2
+    return "$rc"
+  fi
+}
+
+backup_home() {
+  local dest="${BACKUP_ROOT}/Users/${TODAY}"
+  echo "==> home -> ${dest}"
+  mkdir -p "$dest"
+  run_rsync -avz "${HOME_EXCLUDES[@]}" "${HOME}/" "$dest"
+}
+
+backup_data() {
+  if ! is_mounted "$DATA_VOLUME"; then
+    echo "==> skip data: volume not mounted: ${DATA_VOLUME}" >&2
+    return 0
+  fi
+  local dest="${BACKUP_ROOT}/Data/${TODAY}"
+  echo "==> ${DATA_VOLUME} -> ${dest}"
+  mkdir -p "$dest"
+  run_rsync -avz --no-group "${DATA_EXCLUDES[@]}" "$DATA_VOLUME" "$dest"
+}
+
+main() {
+  if ! is_mounted "$BACKUP_VOLUME"; then
+    echo "Backup volume not mounted: ${BACKUP_VOLUME}" >&2
+    exit 1
+  fi
+  if [[ ! -d "$BACKUP_ROOT" ]]; then
+    echo "Backup root does not exist on the volume: ${BACKUP_ROOT}" >&2
+    exit 1
+  fi
+
+  backup_home
+  backup_data
+  echo "==> done"
+}
+
+main "$@"

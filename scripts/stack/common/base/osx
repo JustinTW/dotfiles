@@ -1,21 +1,23 @@
 #!/usr/bin/env bash
 
-source ./scripts/libs/common
-source ./scripts/libs/osx
+set -euo pipefail
+[[ -n "${DEBUG:-}" ]] && set -x
+
+# shellcheck source=../../../libs/osx
+source "$(dirname "${BASH_SOURCE[0]}")/../../../libs/osx"
 
 main() {
   config_sudo
   setup_osx_gui
   install_homebrew
-  brew_install_with_requirement ./requirements/brew/base/formulae.txt
-  brew_install_with_requirement ./requirements/brew/base/cask.txt
-  install_vscode_ext
+  brew_install_with_requirement "${DOTFILES_DIR}/requirements/brew/base/formulae.txt"
+  brew_install_with_requirement "${DOTFILES_DIR}/requirements/brew/base/cask.txt" --cask
   config_zsh
+  install_vscode_ext
   config_git
   config_iterm2
-  config_autojump
   config_apps
-  mac_app_store_install_applications ./requirements/mac-app-store/base.txt
+  mac_app_store_install_applications "${DOTFILES_DIR}/requirements/mac-app-store/base.txt"
 }
 
 main

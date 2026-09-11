@@ -1,187 +1,172 @@
 #!/usr/bin/env bash
 
-source ./scripts/libs/common
+# shellcheck source=./common
+source "$(dirname "${BASH_SOURCE[0]}")/common"
 
 setup_osx_gui() {
-  if ! command -v defaults &>/dev/null; then
-    echo "command defaults not found"
-    return
-  fi
-
-  defaults write com.apple.finder AppleShowAllFiles YES           # show hidden files
+  defaults write com.apple.finder AppleShowAllFiles -bool true    # show hidden files
   defaults write com.apple.dock persistent-apps -array            # remove icons in Dock
   defaults write com.apple.dock tilesize -int 72                  # smaller icon sizes in Dock
-  defaults write com.apple.dock autohide -bool true               # turn Dock auto-hidng on
+  defaults write com.apple.dock autohide -bool true               # turn Dock auto-hiding on
   defaults write com.apple.dock autohide-delay -float 0           # remove Dock show delay
   defaults write com.apple.dock autohide-time-modifier -float 0   # remove Dock show delay
   defaults write com.apple.dock orientation bottom                # place Dock on the bottom side of screen
   defaults write NSGlobalDomain AppleShowAllExtensions -bool true # show all file extensions
-  sudo killall Dock 2>/dev/null
-  sudo killall Finder 2>/dev/null
+
+  # These run as the logged-in user; sudo would target root's (nonexistent) session.
+  killall Dock 2>/dev/null || true
+  killall Finder 2>/dev/null || true
+  killall SystemUIServer 2>/dev/null || true
 }
 
 install_xcode() {
-  if ! command -v softwareupdate &>/dev/null; then
-    echo "softwareupdate is not installed."
+  if xcode-select -p &>/dev/null; then
+    echo "Command Line Tools are already installed."
     return
   fi
-  if command -v xcode-select &>/dev/null; then
-    echo "xcode-select is already installed."
-    return
-  fi
-  # https://github.com/timsutton/osx-vm-templates/blob/ce8df8a7468faa7c5312444ece1b977c1b2f77a4/scripts/xcode-cli-tools.sh
+  # https://github.com/timsutton/osx-vm-templates/blob/ce8df8a/scripts/xcode-cli-tools.sh
   touch /tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress
-  prod=$(softwareupdate -l | grep -o "Command Line Tools for Xcode-.*" | tr -d '\n')
+  local prod
+  prod=$(softwareupdate -l | grep -o "Command Line Tools for Xcode-.*" | tail -n 1 | tr -d '\n')
   softwareupdate -i "$prod" --verbose
+  rm -f /tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress
 }
 
 install_homebrew() {
-  if command -v brew &>/dev/null; then
-    echo "brew is already installed."
-    brew upgrade
-    brew update
-    return
+  if ! command -v brew &>/dev/null; then
+    NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    # Apple Silicon installs to /opt/homebrew, Intel to /usr/local.
+    if [[ -x /opt/homebrew/bin/brew ]]; then
+      eval "$(/opt/homebrew/bin/brew shellenv)"
+    else
+      eval "$(/usr/local/bin/brew shellenv)"
+    fi
   fi
-  NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
-  eval "$(/opt/homebrew/bin/brew shellenv)"
+
+  # update refreshes the formula definitions; upgrade must come after it.
   brew update
+  brew upgrade
 }
 
+# brew_install_with_requirement <file> [extra brew args, e.g. --cask]
+# Installs one package per call so a single failure does not abort the batch.
 brew_install_with_requirement() {
-  HOMEBREW_NO_AUTO_UPDATE=1 xargs brew install < "$1"
+  local file="$1" pkg
+  shift
+  while read -r pkg; do
+    [[ -n "$pkg" && "$pkg" != \#* ]] || continue
+    HOMEBREW_NO_AUTO_UPDATE=1 brew install "$@" "$pkg" || echo "FAILED: brew install $* $pkg" >&2
+  done <"$file"
 }
 
 config_sudo() {
-  sudo sed -i '' "s/%admin\t\tALL = (ALL) ALL/%admin\t\tALL = (ALL) NOPASSWD: ALL/g" /etc/sudoers
+  local dest=/etc/sudoers.d/10-admin-nopasswd
+
+  if sudo test -f "$dest"; then
+    echo "passwordless sudo is already configured."
+    return
+  fi
+
+  # Never edit /etc/sudoers in place. A malformed sudoers file breaks sudo
+  # entirely and is only recoverable from recovery mode, so validate the
+  # snippet with visudo before installing it.
+  local tmp
+  tmp="$(mktemp)"
+  printf '%%admin ALL = (ALL) NOPASSWD: ALL\n' >"$tmp"
+
+  if ! sudo visudo -cf "$tmp"; then
+    echo "config_sudo: generated sudoers snippet failed validation, aborting." >&2
+    rm -f "$tmp"
+    return 1
+  fi
+
+  sudo install -m 0440 -o root -g wheel "$tmp" "$dest"
+  rm -f "$tmp"
+  echo "installed $dest"
 }
 
 config_zsh() {
-  # fix zsh install pip failed
+  # pip refuses to install into the brew-managed Python without this.
   mkdir -p "${HOME}/.config/pip"
-  if ! grep -q "break-system-packages = true" "${HOME}/.config/pip/pip.conf"; then
-    echo "[global]" >> "${HOME}/.config/pip/pip.conf"
-    echo "break-system-packages = true" >> "${HOME}/.config/pip/pip.conf"
+  if ! grep -q "break-system-packages = true" "${HOME}/.config/pip/pip.conf" 2>/dev/null; then
+    printf '[global]\nbreak-system-packages = true\n' >>"${HOME}/.config/pip/pip.conf"
   fi
 
-  # oh-my-zsh
-  rm -rf "${HOME}/.oh-my-zsh"
-  wget -qO- https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh | bash || true
+  # oh-my-zsh. Update in place rather than wiping it -- $ZSH_CUSTOM lives in
+  # this repo, but plugins/ and themes/ under it do not.
+  if [[ -d ${HOME}/.oh-my-zsh/.git ]]; then
+    git -C "${HOME}/.oh-my-zsh" pull --ff-only || true
+  else
+    RUNZSH=no KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+  fi
 
-  # p10k
+  # configs/apps/.zshrc already sources powerlevel10k, so nothing is appended
+  # to ~/.zshrc here -- it is a symlink into this repo and would be dirtied.
   brew install powerlevel10k
-
-  OUTPUT=$(cat "${HOME}/.zshrc")
-  if ! echo "$OUTPUT" | grep -q "powerlevel10k/powerlevel10k.zsh-theme"; then
-    echo "source $(brew --prefix)/opt/powerlevel10k/share/powerlevel10k/powerlevel10k.zsh-theme" >> "${HOME}/.zshrc"
-  fi
-
-  if [[ "$SHELL" != "/bin/zsh" ]]; then
-    chsh -s "$(which zsh)" || true
-  fi
-
   brew tap homebrew/command-not-found
-  pip3 install percol
+
+  if [[ "$SHELL" != "$(command -v zsh)" ]]; then
+    chsh -s "$(command -v zsh)" || true
+  fi
 }
 
 config_iterm2() {
-  defaults write com.googlecode.iterm2 PrefsCustomFolder -string "${HOME}/dotfiles/configs/apps/iterm2"
+  defaults write com.googlecode.iterm2 PrefsCustomFolder -string "${DOTFILES_DIR}/configs/apps/iterm2"
   defaults write com.googlecode.iterm2 LoadPrefsFromCustomFolder -bool true
 }
 
-config_autojump() {
-  if ! command -v autojump &>/dev/null; then
-    [ -f "$(brew --prefix)/etc/profile.d/autojump.sh" ] &&
-      . "$(brew --prefix)/etc/profile.d/autojump.sh"
-    echo "[ -f $(brew --prefix)/etc/profile.d/autojump.sh ] && . $(brew --prefix)/etc/profile.d/autojump.sh" >>~/.zshrc
-  fi
-}
-
 install_go() {
-  # always source to fix issues https://github.com/moovweb/gvm/issues/188#issuecomment-372918090
-  source ${HOME}/.gvm/scripts/gvm
+  # always source to fix https://github.com/moovweb/gvm/issues/188#issuecomment-372918090
+  # shellcheck source=/dev/null
+  source "${HOME}/.gvm/scripts/gvm"
 
-  OUTPUT=$(gvm list)
-  if echo "$OUTPUT" | grep -q "go1.23"; then
+  if gvm list | grep -q "go1.23"; then
     echo "go1.23 is already installed."
     return
   fi
   brew install go
-  # gvm install go1.15.5
-  # gvm use go1.15.5 --default
-  # brew uninstall go
-  # export GOROOT_BOOTSTRAP=${GOROOT}
-  # gvm install go1.18
   gvm install go1.23
   gvm use go1.23 --default
   brew uninstall go
 }
 
-config_docker_compose() {
-  # 設定檔案路徑
-  CONFIG_FILE="$HOME/.docker/config.json"
-  PLUGIN_DIR="/usr/local/lib/docker/cli-plugins"
-
-  # 檢查設定檔案是否存在
-  if [[ ! -f "$CONFIG_FILE" ]]; then
-    # 如果檔案不存在，創建一個基本的 JSON 結構
-    echo '{}' > "$CONFIG_FILE"
-  fi
-
-  # 檢查 cliPluginsExtraDirs 是否已存在
-  if ! jq -e '.cliPluginsExtraDirs' "$CONFIG_FILE" > /dev/null; then
-    # 如果不存在，添加 cliPluginsExtraDirs
-    jq --arg dir "$PLUGIN_DIR" '.cliPluginsExtraDirs = [$dir]' "$CONFIG_FILE" > tmp.$$.json && mv tmp.$$.json "$CONFIG_FILE"
-    echo "已添加 cliPluginsExtraDirs: $PLUGIN_DIR"
-  else
-    # 如果已存在，檢查是否已包含該路徑
-    if ! jq -e --arg dir "$PLUGIN_DIR" '.cliPluginsExtraDirs | index($dir)' "$CONFIG_FILE" > /dev/null; then
-      # 如果不包含，將路徑添加到 cliPluginsExtraDirs
-      jq --arg dir "$PLUGIN_DIR" '.cliPluginsExtraDirs += [$dir]' "$CONFIG_FILE" > tmp.$$.json && mv tmp.$$.json "$CONFIG_FILE"
-      echo "已將 $PLUGIN_DIR 添加到 cliPluginsExtraDirs"
-    else
-      echo "cliPluginsExtraDirs 已包含 $PLUGIN_DIR"
-    fi
-  fi
-}
-
 mac_app_store_install_applications() {
-  while read line; do
-    OUTPUT=$(mas list)
-    if echo "$OUTPUT" | grep -q "$line"; then
-      echo "$line is already installed."
+  if ! command -v mas &>/dev/null; then
+    echo "mas not found, skipping App Store apps."
+    return
+  fi
+
+  local installed app
+  installed="$(mas list)"
+  while read -r app; do
+    [[ -n "$app" && "$app" != \#* ]] || continue
+    if grep -qF "$app" <<<"$installed"; then
+      echo "$app is already installed."
       continue
     fi
-    mas lucky "$line"
-  done < "$1"
+    mas lucky "$app" || echo "FAILED: $app" >&2
+  done <"$1"
   mas upgrade
 }
 
-download_dmg_files() {
-  set -x
-  tempd=$(mktemp -d)
-  curl "$1" > "${tempd}/pkg.dmg"
-  listing=$(sudo hdiutil attach "${tempd}/pkg.dmg" | grep Volumes)
-  volume=$(echo "$listing" | cut -f 3)
-  open $tempd
-  echo "Please install by click install.app"
-  read -r -p "Press enter to continue"
-  sudo hdiutil detach "$(echo "$listing" | cut -f 1 | sed 's/ *$//g')"
-  rm -rf "$tempd"
-  set +x
-}
-
-install_parallels_desktop() {
-  # if [[ -d "/Applications/Parallels Desktop.app" ]]; then
-  #   echo "Parallels Desktop 15 already installed"
-  #   return
-  # fi
-  download_dmg_files https://download.parallels.com/desktop/v15/15.1.5-47309/ParallelsDesktop-15.1.5-47309.dmg
-}
-
 install_session_manager_plugin() {
-  curl "https://s3.amazonaws.com/session-manager-downloads/plugin/latest/mac_arm64/sessionmanager-bundle.zip" -o "sessionmanager-bundle.zip"
-  unzip sessionmanager-bundle.zip
-  sudo ./sessionmanager-bundle/install -i /usr/local/sessionmanagerplugin -b /usr/local/bin/session-manager-plugin
-  sudo rm -rf sessionmanager-bundle.zip
-  sudo rm -rf sessionmanager-bundle
+  if command -v session-manager-plugin &>/dev/null; then
+    echo "session-manager-plugin is already installed."
+    return
+  fi
+
+  local arch tmp
+  case "$(uname -m)" in
+  arm64) arch=mac_arm64 ;;
+  *) arch=mac ;;
+  esac
+
+  tmp="$(mktemp -d)"
+  curl -fsSL -o "${tmp}/bundle.zip" \
+    "https://s3.amazonaws.com/session-manager-downloads/plugin/latest/${arch}/sessionmanager-bundle.zip"
+  unzip -q "${tmp}/bundle.zip" -d "$tmp"
+  sudo "${tmp}/sessionmanager-bundle/install" \
+    -i /usr/local/sessionmanagerplugin \
+    -b /usr/local/bin/session-manager-plugin
+  rm -rf "$tmp"
 }
