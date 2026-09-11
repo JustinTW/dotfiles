@@ -19,6 +19,7 @@ main() {
   install_vscode_ext
   install_kubectl
   install_session_manager_plugin
+  config_ecr_credential_helper
 }
 
 main

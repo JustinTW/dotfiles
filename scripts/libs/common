@@ -156,6 +156,67 @@ install_vscode_ext() {
   done <"${DOTFILES_DIR}/requirements/vscode/extensions.txt"
 }
 
+# Wire the Amazon ECR Docker Credential Helper into ~/.docker/config.json.
+#
+# Without this the helper binary is installed but unused, and every registry
+# relies on the 12-hour token that `aws ecr get-login-password | docker login`
+# writes into .auths. credHelpers does not support wildcards
+# (https://github.com/docker/cli/issues/2928), so each registry is listed
+# explicitly. credsStore is deliberately not used: it would route *every*
+# registry, Docker Hub included, through ecr-login.
+config_ecr_credential_helper() {
+  if ! command -v docker-credential-ecr-login &>/dev/null; then
+    echo "docker-credential-ecr-login not found, skipping ECR helper setup."
+    return
+  fi
+  if ! command -v jq &>/dev/null; then
+    echo "jq not found, skipping ECR helper setup." >&2
+    return
+  fi
+
+  local config="${HOME}/.docker/config.json"
+  mkdir -p "$(dirname "$config")"
+  [[ -s "$config" ]] || echo '{}' >"$config"
+
+  # Registries to route through the helper:
+  #   - public.ecr.aws
+  #   - whatever ECR_REGISTRIES lists in .env (space separated)
+  #   - every ECR registry this machine has already logged in to, so an
+  #     existing config migrates off its stored tokens on its own
+  local registries
+  registries=$(
+    {
+      echo "public.ecr.aws"
+      tr ' ' '\n' <<<"${ECR_REGISTRIES:-}"
+      jq -r '((.auths // {}) + (.credHelpers // {})) | keys[]' "$config"
+    } | grep -E '^([0-9]+\.dkr\.ecr\.[a-z0-9-]+\.amazonaws\.com|public\.ecr\.aws)$' | sort -u
+  )
+
+  local regs_json tmp
+  regs_json=$(jq -R -s 'split("\n") | map(select(length > 0))' <<<"$registries")
+  tmp=$(mktemp)
+
+  # Point each registry at ecr-login, and drop the stored ECR tokens it
+  # replaces. Non-ECR auths are left untouched.
+  jq --argjson regs "$regs_json" '
+    .credHelpers = ((.credHelpers // {}) + ($regs | map({key: ., value: "ecr-login"}) | from_entries))
+    | .auths = ((.auths // {}) | with_entries(select(.key as $k | ($regs | index($k)) | not)))
+  ' "$config" >"$tmp"
+
+  if ! jq -e . "$tmp" >/dev/null 2>&1; then
+    echo "config_ecr_credential_helper: produced invalid JSON, leaving config alone." >&2
+    rm -f "$tmp"
+    return 1
+  fi
+
+  cp "$config" "${config}.pre-$(date +%Y%m%d-%H%M%S)"
+  mv "$tmp" "$config"
+  chmod 600 "$config"
+  echo "ECR credential helper wired up for:"
+  local reg
+  while read -r reg; do echo "  $reg"; done <<<"$registries"
+}
+
 install_kubectl() {
   if command -v kubectl &>/dev/null; then
     echo "kubectl is already installed."

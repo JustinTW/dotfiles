@@ -47,6 +47,18 @@ the macOS keychain instead:
 export SOME_TOKEN="$(security find-generic-password -w -s some-token)"
 ```
 
+## ECR credential helper
+
+The `web` stack wires the Amazon ECR Docker Credential Helper into
+`~/.docker/config.json`, so `docker pull` against ECR authenticates itself
+instead of relying on a 12-hour token from `aws ecr get-login-password`.
+
+Registries already present in the config are migrated automatically; list any
+extra ones in `ECR_REGISTRIES` in `.env`. `credHelpers` does not support
+wildcards ([docker/cli#2928](https://github.com/docker/cli/issues/2928)), so
+each registry is named explicitly. `credsStore` is deliberately avoided — it
+would route every registry, Docker Hub included, through `ecr-login`.
+
 ## Backup & restore macOS preferences
 
 ```sh
