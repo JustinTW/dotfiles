@@ -1,4 +1,13 @@
-eval "$(/opt/homebrew/bin/brew shellenv)"
+# ---------------------------------------------------------------------------
+# Homebrew -- first, because everything below resolves tools through it.
+# brew shellenv exports HOMEBREW_PREFIX, so no `brew --prefix` subprocesses
+# are needed further down.
+# ---------------------------------------------------------------------------
+if [[ -x /opt/homebrew/bin/brew ]]; then
+  eval "$(/opt/homebrew/bin/brew shellenv)"     # Apple Silicon
+elif [[ -x /usr/local/bin/brew ]]; then
+  eval "$(/usr/local/bin/brew shellenv)"        # Intel
+fi
 
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
@@ -7,98 +16,103 @@ if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
 
-# p10k
-[[ ! -f "${HOME}/.p10k.zsh" ]] || source "${HOME}/.p10k.zsh"
+# p10k theme
+if [[ -r "${HOMEBREW_PREFIX}/opt/powerlevel10k/share/powerlevel10k/powerlevel10k.zsh-theme" ]]; then
+  source "${HOMEBREW_PREFIX}/opt/powerlevel10k/share/powerlevel10k/powerlevel10k.zsh-theme"
+fi
 
-# p10k paths
-possible_p10k_paths=(
-  $(brew --prefix)/usr/local/opt/powerlevel10k/powerlevel10k.zsh-theme
-  /usr/local/Cellar/powerlevel10k/1.19.0/share/powerlevel10k/powerlevel10k.zsh-theme
-  $(brew --prefix)/opt/powerlevel10k/share/powerlevel10k/powerlevel10k.zsh-theme
-)
-# foreach possible_p10k_paths if exist, source it
-for p10k_path in "${possible_p10k_paths[@]}"; do
-  [[ ! -f "${p10k_path}" ]] || source "${p10k_path}"
-done
-
-ZSH_CUSTOM=${HOME}/dotfiles/configs/apps/.oh-my-zsh/custom
-
-export PYENV_ROOT="$HOME/.pyenv"
-export PATH="${PYENV_ROOT}/bin:${PATH}"
-eval "$(pyenv init --path)"
-
+# ---------------------------------------------------------------------------
+# oh-my-zsh
+# ---------------------------------------------------------------------------
+ZSH_CUSTOM="${HOME}/dotfiles/configs/apps/.oh-my-zsh/custom"
 export ZSH="${HOME}/.oh-my-zsh"
-plugins=(aliases autojump autopep8 aws brew command-not-found common-aliases compleat cp dircycle dirpersist docker docker-compose encode64 extract fasd git git-auto-fetch git-extras git-flow git-flow-avh gitignore helm history jump kubectl kubectx macos npm nvm pep8 perms pip pyenv python rsync sudo systemadmin tmux virtualenv vscode z)
 ZSH_THEME="robbyrussell"
-source ${ZSH}/oh-my-zsh.sh
-zstyle ':omz:update' mode disabled  # disable automatic updates
 
+# Dropped: fasd (unmaintained, not installed), compleat (not installed),
+# autopep8 / pep8 (deprecated), git-flow (superseded by git-flow-avh).
+plugins=(
+  aliases autojump aws brew command-not-found common-aliases cp dircycle
+  dirpersist docker docker-compose encode64 extract git git-auto-fetch
+  git-extras git-flow-avh gitignore helm history jump kubectl kubectx macos
+  npm nvm perms pip pyenv python rsync sudo systemadmin tmux virtualenv
+  vscode z
+)
+
+zstyle ':omz:update' mode disabled  # must be set before oh-my-zsh.sh runs
+source "${ZSH}/oh-my-zsh.sh"
+
+# ---------------------------------------------------------------------------
 # User configuration
+# ---------------------------------------------------------------------------
 export EDITOR=vim
 export LANG=en_US.UTF-8
-
-# Automatically detect system architecture using uname
 export ARCHFLAGS="-arch $(uname -m)"
+
+# ---------------------------------------------------------------------------
+# Language runtimes -- each guarded, so a machine missing one still gets a
+# working shell instead of an error on every prompt.
+# ---------------------------------------------------------------------------
+
+# pyenv
+export PYENV_ROOT="$HOME/.pyenv"
+[[ -d "${PYENV_ROOT}/bin" ]] && export PATH="${PYENV_ROOT}/bin:${PATH}"
+command -v pyenv &>/dev/null && eval "$(pyenv init --path)"
 
 # gvm - only load in interactive shells
 if [[ -s "${HOME}/.gvm/scripts/gvm" ]] && [[ -o interactive ]]; then
   source "${HOME}/.gvm/scripts/gvm" 2>/dev/null || true
 fi
 
-# Auto-switch Go version based on .go-version file
+# Auto-switch Go version based on .go-version file.
+# No --default here: that would rewrite the global default on every cd.
 autoload -U add-zsh-hook
 _auto_gvm_use() {
-  if [[ -f .go-version ]]; then
-    local ver=$(cat .go-version)
-    local current=$(go version 2>/dev/null | awk '{print $3}')
-    if [[ "$current" != "$ver" ]]; then
-      gvm use "$ver" --default 2>/dev/null || true
-    fi
-  fi
+  [[ -f .go-version ]] || return
+  command -v gvm &>/dev/null || return
+  local ver current
+  ver=$(<.go-version)
+  current=$(go version 2>/dev/null | awk '{print $3}')
+  [[ "$current" == "$ver" ]] || gvm use "$ver" 2>/dev/null || true
 }
 add-zsh-hook chpwd _auto_gvm_use
 _auto_gvm_use
 
-# Avoid console output after instant prompt preamble
-if [[ -z "${POWERLEVEL9K_INSTANT_PROMPT}" ]]; then
-  # nvm instal v18 requirements
-  brew install python-setuptools
-fi
+# Rust / Cargo
+[[ -s "$HOME/.cargo/env" ]] && source "$HOME/.cargo/env"
 
 # pnpm
 export PNPM_HOME="${HOME}/Library/pnpm"
-case ":$PATH:" in
-  *":$PNPM_HOME:"*) ;;
-  *) export PATH="$PNPM_HOME:$PATH" ;;
-esac
-
-# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
-
-export JAVA_HOME=/Applications/Android\ Studio.app/Contents/jbr/Contents/Home
-
-HOMEBREW_COMMAND_NOT_FOUND_HANDLER="$(brew --repository)/Library/Homebrew/command-not-found/handler.sh"
-if [ -f "$HOMEBREW_COMMAND_NOT_FOUND_HANDLER" ]; then
-  source "$HOMEBREW_COMMAND_NOT_FOUND_HANDLER";
-fi
-
-# Claude CLI Homebrew Priority
-# 确保 Homebrew 路径优先于 nvm，用于全局工具如 Claude CLI
-export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
-
-
-# Rust / Cargo
-. "$HOME/.cargo/env"
-
-# Solana CLI
-export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
-
-# Anchor (avm)
-export PATH="$HOME/.avm/bin:$PATH"
-
-# bun completions
-[ -s "/Users/justinct_liu/.bun/_bun" ] && source "/Users/justinct_liu/.bun/_bun"
+[[ -d "$PNPM_HOME" && ":$PATH:" != *":$PNPM_HOME:"* ]] && export PATH="$PNPM_HOME:$PATH"
 
 # bun
 export BUN_INSTALL="$HOME/.bun"
-export PATH="$BUN_INSTALL/bin:$PATH"
+[[ -d "$BUN_INSTALL/bin" ]] && export PATH="$BUN_INSTALL/bin:$PATH"
+[[ -s "$HOME/.bun/_bun" ]] && source "$HOME/.bun/_bun"
+
+# Solana CLI
+[[ -d "$HOME/.local/share/solana/install/active_release/bin" ]] &&
+  export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
+
+# Anchor (avm)
+[[ -d "$HOME/.avm/bin" ]] && export PATH="$HOME/.avm/bin:$PATH"
+
+# Java, as shipped inside Android Studio
+[[ -d "/Applications/Android Studio.app/Contents/jbr/Contents/Home" ]] &&
+  export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
+
+# Keep Homebrew ahead of nvm's shims for globally installed CLIs.
+export PATH="${HOMEBREW_PREFIX}/bin:${PATH}"
+
+# ---------------------------------------------------------------------------
+# Terminal hygiene
+# ---------------------------------------------------------------------------
+
+# Reset mouse tracking mode that programs (vim, fzf, etc.) may leave enabled on crash
+_reset_mouse_tracking() {
+  printf '\e[?1000l\e[?1002l\e[?1003l\e[?1006l\e[?1015l' > /dev/tty 2>/dev/null
+}
+add-zsh-hook precmd _reset_mouse_tracking
+
+# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+# Must stay last: it configures the theme sourced above.
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh

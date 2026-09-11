@@ -90,5 +90,16 @@
   "claudeCode.selectedModel": "default",
   "claudeCode.preferredLocation": "panel",
   "python.defaultInterpreterPath": "/opt/homebrew/bin/python3.13",
-  "claudeCode.allowDangerouslySkipPermissions": true
+  "claudeCode.allowDangerouslySkipPermissions": true,
+  "yaml.disableSchemaDetection": [
+    "**/.github/workflows/*.yml",
+    "**/.github/workflows/*.yaml",
+    "**/.gitea/workflows/*.yml",
+    "**/.gitea/workflows/*.yaml",
+    "**/.forgejo/workflows/*.yml",
+    "**/.forgejo/workflows/*.yaml"
+  ],
+  "docker.extension.dockerEngineAvailabilityPrompt": false,
+  "security.workspace.trust.untrustedFiles": "open",
+  "claudeCode.hideOnboarding": true
 }
