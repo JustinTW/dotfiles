@@ -1,27 +1,29 @@
-.PHONY: help
+.PHONY: help base web moxa debug backup pref-backup lint
 .DEFAULT_GOAL := help
 
-DOT_ENV ?= .env
-ifneq ("$(wildcard $(DOT_ENV))","")
-	include $(DOT_ENV)
-	export $(shell sed 's/=.*//' $(DOT_ENV))
-endif
+SHELL_SCRIPTS := scripts/install scripts/backup scripts/osx-backup-pref \
+                 $(wildcard scripts/libs/*) $(wildcard scripts/stack/*/*/*)
 
-# alias
-b: build
-r: run
-p: push
-c: clean
+help: ## Show this help
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "\033[36m%-14s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
-help:
-	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+base: ## Provision the base environment
+	@./scripts/install base
 
-up: ## Boot up app on local environment
-	docker-compose -f ./deployments/docker-compose.yaml up -d $(DOCKER_APP)
+web: ## Install the web development stack
+	@./scripts/install web
 
-at: up ## Attach local environment
-	docker exec -it $(DOCKER_APP) bash
+moxa: ## Install the Moxa enterprise stack
+	@./scripts/install moxa
 
-down: ## Halt local environment
-	docker-compose -f ./deployments/docker-compose.yaml stop
-	docker-compose -f ./deployments/docker-compose.yaml rm -f
+debug: ## Re-apply sudo config and dotfile symlinks only
+	@./scripts/install debug
+
+backup: ## rsync home and the DATA volume to the external backup volume
+	@./scripts/backup
+
+pref-backup: ## Export macOS preference domains to ~/Desktop
+	@./scripts/osx-backup-pref backup
+
+lint: ## Run shellcheck over every shell script
+	@shellcheck $(SHELL_SCRIPTS)
