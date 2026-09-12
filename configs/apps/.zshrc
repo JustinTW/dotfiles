@@ -22,6 +22,14 @@ if [[ -r "${HOMEBREW_PREFIX}/opt/powerlevel10k/share/powerlevel10k/powerlevel10k
 fi
 
 # ---------------------------------------------------------------------------
+# pyenv -- must come before oh-my-zsh.sh. The pyenv plugin checks that
+# $(pyenv root)/shims is already in $PATH and warns loudly if it is not.
+# ---------------------------------------------------------------------------
+export PYENV_ROOT="$HOME/.pyenv"
+[[ -d "${PYENV_ROOT}/bin" ]] && export PATH="${PYENV_ROOT}/bin:${PATH}"
+command -v pyenv &>/dev/null && eval "$(pyenv init --path)"
+
+# ---------------------------------------------------------------------------
 # oh-my-zsh
 # ---------------------------------------------------------------------------
 ZSH_CUSTOM="${HOME}/dotfiles/configs/apps/.oh-my-zsh/custom"
@@ -52,11 +60,6 @@ export ARCHFLAGS="-arch $(uname -m)"
 # Language runtimes -- each guarded, so a machine missing one still gets a
 # working shell instead of an error on every prompt.
 # ---------------------------------------------------------------------------
-
-# pyenv
-export PYENV_ROOT="$HOME/.pyenv"
-[[ -d "${PYENV_ROOT}/bin" ]] && export PATH="${PYENV_ROOT}/bin:${PATH}"
-command -v pyenv &>/dev/null && eval "$(pyenv init --path)"
 
 # gvm - only load in interactive shells
 if [[ -s "${HOME}/.gvm/scripts/gvm" ]] && [[ -o interactive ]]; then
